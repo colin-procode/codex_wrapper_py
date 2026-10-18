@@ -1,4 +1,6 @@
-# Codex Python wrapper
+Utilize OpenAI API features using just your monthly subscription with codex wrapper
+
+# Codex Wrapper Py
 
 A small, dependency-free wrapper for prompting the installed Codex CLI.
 
