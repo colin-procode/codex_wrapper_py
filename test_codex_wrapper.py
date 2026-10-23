@@ -49,6 +49,30 @@ class CodexWrapperTests(unittest.TestCase):
 
     @patch("codex_wrapper.subprocess.run")
     @patch("codex_wrapper.shutil.which", return_value="/usr/bin/codex")
+    def test_can_skip_git_repo_check(self, _which, run):
+        run.return_value.returncode = 0
+        run.return_value.stdout = events("hello")
+        run.return_value.stderr = ""
+        client = Codex(skip_git_repo_check=True)
+
+        self.assertEqual(client.prompt("Say hello"), "hello")
+        self.assertIn("--skip-git-repo-check", run.call_args.args[0])
+
+    @patch("codex_wrapper.subprocess.run")
+    @patch("codex_wrapper.shutil.which", return_value="/usr/bin/codex")
+    def test_attaches_images_to_prompt(self, _which, run):
+        run.return_value.returncode = 0
+        run.return_value.stdout = events("hello")
+        run.return_value.stderr = ""
+        client = Codex()
+
+        client.prompt("Describe this character", images=["character.png"])
+        args = run.call_args.args[0]
+        self.assertIn("--image", args)
+        self.assertEqual(args[args.index("--image") + 1], str(__import__("pathlib").Path("character.png").resolve()))
+
+    @patch("codex_wrapper.subprocess.run")
+    @patch("codex_wrapper.shutil.which", return_value="/usr/bin/codex")
     def test_cli_error_does_not_add_history(self, _which, run):
         run.return_value.returncode = 2
         run.return_value.stdout = ""

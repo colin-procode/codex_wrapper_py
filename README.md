@@ -20,10 +20,19 @@ sandbox, or pass a model and working directory:
 codex = Codex(model="gpt-6-luna", read_only=True, cwd=".")
 ```
 
+For a workspace that is not inside a Git repository, pass
+`skip_git_repo_check=True` to allow Codex CLI to use that directory.
+
 Each instance keeps its own in-memory message history and resumes its Codex
 thread on subsequent prompts. History is not saved by this Python wrapper after
 the process exits; Codex itself stores normal (non-ephemeral) CLI sessions.
 Requires the `codex` executable to be installed and authenticated.
+
+Attach local image references to a prompt with `images`:
+
+```python
+answer = codex.prompt("Describe these characters", images=["refs/character.png"])
+```
 This project was documented and verified with **Codex CLI 0.163.0**. Check
 the installed version with `codex --version`.
 

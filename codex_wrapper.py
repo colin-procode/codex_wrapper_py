@@ -36,6 +36,7 @@ class Codex:
         read_only: bool = False,
         cwd: str | Path | None = None,
         executable: str = "codex",
+        skip_git_repo_check: bool = False,
     ) -> None:
         if not model.strip():
             raise ValueError("model must not be empty")
@@ -43,6 +44,7 @@ class Codex:
         self.read_only = read_only
         self.cwd = Path(cwd).resolve() if cwd is not None else Path.cwd()
         self.executable = executable
+        self.skip_git_repo_check = skip_git_repo_check
         self.thread_id: str | None = None
         self._history: list[Message] = []
 
@@ -51,8 +53,8 @@ class Codex:
         """Messages exchanged via this wrapper instance, in chronological order."""
         return tuple(self._history)
 
-    def prompt(self, message: str) -> str:
-        """Send a prompt and return Codex's final response text."""
+    def prompt(self, message: str, images: Sequence[str | Path] = ()) -> str:
+        """Send a prompt, optionally attaching images, and return final response text."""
         if not message.strip():
             raise ValueError("message must not be empty")
         if shutil.which(self.executable) is None and not Path(self.executable).is_file():
@@ -60,12 +62,18 @@ class Codex:
 
         command = [self.executable, "exec"]
         if self.thread_id:
-            command.extend(["resume", self.thread_id, "--json", "--model", self.model, message])
+            command.extend(["resume", self.thread_id])
         else:
-            command.extend(["--json", "--model", self.model])
+            command.extend(["--cd", str(self.cwd)])
+        if self.skip_git_repo_check:
+            command.append("--skip-git-repo-check")
+        for image in images:
+            command.extend(["--image", str(Path(image).expanduser().resolve())])
+        command.extend(["--json", "--model", self.model])
+        if not self.thread_id:
             if self.read_only:
                 command.extend(["--sandbox", "read-only"])
-            command.extend(["--cd", str(self.cwd), message])
+        command.append(message)
 
         result = subprocess.run(command, capture_output=True, text=True, check=False)
         if result.returncode:
