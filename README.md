@@ -20,6 +20,19 @@ sandbox, or pass a model and working directory:
 codex = Codex(model="gpt-6-luna", read_only=True, cwd=".")
 ```
 
+Resume a session by passing its saved thread ID:
+
+```python
+codex = Codex(thread_id="01a181f3-18e9-7872-857f-c7710adb0e90")
+answer = codex.prompt("Continue the task")
+```
+
+The worker uses the wrapper's streaming runner so JSONL events remain available
+to task activity, and uses its app-server helpers to rename or delete linked
+threads. `CODEX_WRAPPER_PATH` can point the worker to `codex_wrapper.py` when
+the wrapper is not at `../codex_wrapper/codex_wrapper.py` relative to the
+Agent Manager checkout.
+
 For a workspace that is not inside a Git repository, pass
 `skip_git_repo_check=True` to allow Codex CLI to use that directory.
 
